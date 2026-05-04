@@ -132,6 +132,18 @@ parser.add_argument(
     "--log-path",
     help="Optional directory for the loader log file. Defaults to a log file beside load-gnaf.py.")
 
+parser.add_argument(
+    "--s3-bucket",
+    help="S3 bucket containing the GNAF PSV files. When set, raw GNAF data is imported via the aws_s3 PostgreSQL "
+         "extension instead of COPY FROM a local file path. Requires --s3-path and --s3-region. "
+         "The aws_s3 extension must be installed on the PostgreSQL server.")
+parser.add_argument(
+    "--s3-path",
+    help="Path within the S3 bucket corresponding to the --gnaf-tables-path directory.")
+parser.add_argument(
+    "--s3-region",
+    help="AWS region for the S3 bucket.")
+
 # states to load
 parser.add_argument("--states", nargs="+", choices=["ACT", "NSW", "NT", "OT", "QLD", "SA", "TAS", "VIC", "WA"],
                     default=["ACT", "NSW", "NT", "OT", "QLD", "SA", "TAS", "VIC", "WA"],
@@ -184,6 +196,14 @@ else:
     gnaf_pg_server_local_directory = gnaf_network_directory
 
 admin_bdys_local_directory = args.admin_bdys_path.replace("\\", "/")
+
+s3_bucket = args.s3_bucket or None
+s3_path = args.s3_path.rstrip("/") if args.s3_path else None
+s3_region = args.s3_region or None
+
+if s3_bucket and (not s3_path or not s3_region):
+    print("--s3-path and --s3-region are required when --s3-bucket is set - EXITING!")
+    exit()
 
 log_path = args.log_path
 

@@ -239,7 +239,19 @@ def get_raw_gnaf_files(prefix):
                         file_path = file_path.replace("\\", "/")
                         # logger.info(file_path
 
-                    sql = f"COPY {settings.raw_gnaf_schema}.{table} FROM '{file_path}' DELIMITER '|' CSV HEADER;"
+                    if settings.s3_bucket:
+                        suffix = file_path[len(settings.gnaf_pg_server_local_directory):]
+                        s3_key = settings.s3_path + suffix.replace("\\", "/")
+                        sql = (
+                            f"SELECT aws_s3.table_import_from_s3("
+                            f"'{settings.raw_gnaf_schema}.{table}', '', "
+                            f"'(FORMAT CSV, DELIMITER ''|'', HEADER true)', "
+                            f"aws_commons.create_s3_uri("
+                            f"'{settings.s3_bucket}', '{s3_key}', '{settings.s3_region}'"
+                            f"))"
+                        )
+                    else:
+                        sql = f"COPY {settings.raw_gnaf_schema}.{table} FROM '{file_path}' DELIMITER '|' CSV HEADER;"
 
                     sql_list.append(sql)
 
