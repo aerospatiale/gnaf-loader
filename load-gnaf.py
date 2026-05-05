@@ -896,9 +896,12 @@ def create_qa_tables(pg_cur):
 
         # get row counts by state
         for table_name in table_names:
-            sql = f"""INSERT INTO {schema}.qa 
-                      SELECT '{table_name}', SUM(AUS), SUM(ACT), SUM(NSW), SUM(NT), SUM(OT), SUM(QLD), SUM(SA), 
-                          SUM(TAS), SUM(VIC), SUM(WA) 
+            sql = f"""INSERT INTO {schema}.qa
+                      SELECT '{table_name}',
+                          COALESCE(SUM(AUS), 0), COALESCE(SUM(ACT), 0), COALESCE(SUM(NSW), 0),
+                          COALESCE(SUM(NT), 0), COALESCE(SUM(OT), 0), COALESCE(SUM(QLD), 0),
+                          COALESCE(SUM(SA), 0), COALESCE(SUM(TAS), 0), COALESCE(SUM(VIC), 0),
+                          COALESCE(SUM(WA), 0)
                       FROM (
                           SELECT 1 AS AUS,
                           CASE WHEN state = 'ACT' THEN 1 ELSE 0 END AS ACT,
